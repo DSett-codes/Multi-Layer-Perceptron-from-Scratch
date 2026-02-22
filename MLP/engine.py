@@ -1,7 +1,7 @@
 import math
 
-class Value:
-    """ stores a single scalar value and its gradient """
+class Tensor:
+    """ stores a single scalar Tensor and its gradient """
 
     def __init__(self, data, _children=(), _op=''):
         self.data = data
@@ -12,8 +12,8 @@ class Value:
         self._op = _op # the op that produced this node, for graphviz / debugging / etc
 
     def __add__(self, other):
-        other = other if isinstance(other, Value) else Value(other)
-        out = Value(self.data + other.data, (self, other), '+')
+        other = other if isinstance(other, Tensor) else Tensor(other)
+        out = Tensor(self.data + other.data, (self, other), '+')
 
         def _backward():
             self.grad += out.grad
@@ -23,8 +23,8 @@ class Value:
         return out
 
     def __mul__(self, other):
-        other = other if isinstance(other, Value) else Value(other)
-        out = Value(self.data * other.data, (self, other), '*')
+        other = other if isinstance(other, Tensor) else Tensor(other)
+        out = Tensor(self.data * other.data, (self, other), '*')
 
         def _backward():
             self.grad += other.data * out.grad
@@ -35,7 +35,7 @@ class Value:
 
     def __pow__(self, other):
         assert isinstance(other, (int, float)), "only supporting int/float powers for now"
-        out = Value(self.data**other, (self,), f'**{other}')
+        out = Tensor(self.data**other, (self,), f'**{other}')
 
         def _backward():
             self.grad += (other * self.data**(other-1)) * out.grad
@@ -44,7 +44,7 @@ class Value:
         return out
 
     def relu(self):
-        out = Value(0 if self.data < 0 else self.data, (self,), 'ReLU')
+        out = Tensor(0 if self.data < 0 else self.data, (self,), 'ReLU')
 
         def _backward():
             self.grad += (out.data > 0) * out.grad
@@ -55,7 +55,7 @@ class Value:
     def tanh(self):
         x = self.data
         t = (math.exp(2*x) - 1)/(math.exp(2*x) + 1)
-        out = Value(t, (self, ), 'tanh')
+        out = Tensor(t, (self, ), 'tanh')
 
         def _backward():
             self.grad += (1 - t**2) * out.grad
@@ -65,7 +65,7 @@ class Value:
 
     def exp(self):
         x = self.data
-        out = Value(math.exp(x), (self,), 'exp')
+        out = Tensor(math.exp(x), (self,), 'exp')
 
         def _backward():
             self.grad += out.data * out.grad
@@ -75,8 +75,8 @@ class Value:
 
     def backward(self):
         """
-        Performs backpropagation starting from this Value object.
-        It computes gradients for all preceding Value objects in the computational graph.
+        Performs backpropagation starting from this Tensor object.
+        It computes gradients for all preceding Tensor objects in the computational graph.
         """
 
         # topological order all of the children in the graph
@@ -117,4 +117,4 @@ class Value:
         return other * self**-1
 
     def __repr__(self):
-        return f"Value(data={self.data}, grad={self.grad})"
+        return f"Tensor(data={self.data}, grad={self.grad})"

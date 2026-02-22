@@ -1,5 +1,5 @@
 import random
-from MLP.engine import Value
+from MLP.engine import Tensor
 
 class Module:
     """Base class for all neural network components."""
@@ -17,8 +17,8 @@ class Neuron(Module):
     def __init__(self, nin, nonlin=True):
         self.w = []
         for _ in range(nin):
-            self.w.append(Value(random.uniform(-1, 1)))
-        self.b = Value(0)
+            self.w.append(Tensor(random.uniform(-1, 1)))
+        self.b = Tensor(0)
         self.nonlin = nonlin
 
     def __call__(self, x):
